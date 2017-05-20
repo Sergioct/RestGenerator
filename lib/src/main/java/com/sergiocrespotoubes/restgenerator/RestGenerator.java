@@ -1,10 +1,15 @@
 package com.sergiocrespotoubes.restgenerator;
 
-import java.lang.invoke.MethodHandles.Lookup;
-import java.lang.reflect.Constructor;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.concurrent.Semaphore;
 
 /**
  * Created by Sergio on 20-May-17.
@@ -13,6 +18,9 @@ import java.lang.reflect.Proxy;
 public class RestGenerator {
 
     String url;
+    String result;
+    Semaphore semaphore;
+    boolean finished;
 
     public RestGenerator(String url) {
         this.url = url;
@@ -33,8 +41,6 @@ public class RestGenerator {
 
     public <T> T build(final Class<T> clazz) {
 
-        generateClass(clazz);
-
         return (T) Proxy.newProxyInstance(clazz.getClassLoader(), new Class<?>[] { clazz },
                 new InvocationHandler() {
                     @Override
@@ -48,63 +54,6 @@ public class RestGenerator {
                         return "ERROR";
                     }
                 });
-    }
-
-    Object invokeDefaultMethod(Method method, Class<?> declaringClass, Object object,
-                                         Object... args) throws Throwable {
-        // Because the service interface might not be public, we need to use a MethodHandle lookup
-        // that ignores the visibility of the declaringClass.
-        Constructor<Lookup> constructor = Lookup.class.getDeclaredConstructor(Class.class, int.class);
-        //constructor.setAccessible(true);
-        return constructor.newInstance(declaringClass, -1 /* trusted */)
-                .unreflectSpecial(method, declaringClass)
-                .bindTo(object)
-                .invokeWithArguments(args);
-    }
-
-    private <T> void generateClass(Class<T> clazz) {
-/*
-        Method[] methods = clazz.getMethods();
-
-        for (Method method : methods) {
-
-            if (method.isAnnotationPresent(POST.class)) {
-                post(method);
-            }else if (method.isAnnotationPresent(GET.class)) {
-                get(method);
-            }
-        }
-
-        StringBuilder builder = new StringBuilder()
-                .append("package com.stablekernel.annotationprocessor.generated;\n\n")
-                .append("public class GeneratedClass {\n\n") // open class
-                .append("\tpublic String getMessage() {\n") // open method
-                .append("\t\treturn \"");
-
-
-        builder.append(" says hello!\\n");
-
-        builder.append("\";\n") // end return
-                .append("\t}\n") // close method
-                .append("}\n"); // close class
-
-
-
-        try { // write the file
-            JavaFileObject source = roundEnv.getFiler().createSourceFile("com.stablekernel.annotationprocessor.generated.GeneratedClass");
-
-            Writer writer = source.openWriter();
-            writer.write(builder.toString());
-            writer.flush();
-            writer.close();
-        } catch (IOException e) {
-            // Note: calling e.printStackTrace() will print IO errors
-            // that occur from the file already existing after its first run, this is normal
-        }
-
-
-        return true;*/
-
     }
 
     private String post(Method method) {
@@ -129,13 +78,59 @@ public class RestGenerator {
         Class declaringClass = method.getDeclaringClass();
         Class theClass = method.getClass();
 
-        String url;
+        String myUrl = this.url + get.value();
+        result = "error";
+        finished = false;
 
-        url = this.url + get.value();
+        serverCall(myUrl, new CallResponse() {
+            @Override
+            public void getCall(String response) {
+                result = response;
+                finished = true;
+            }
+        });
 
-        String result = "get";
+        while(!finished){
+
+        }
 
         return result;
+    }
+
+    private void serverCall(final String auxUrl, final CallResponse callResponse){
+        new Thread(new Runnable() {
+            public void run() {
+                try {
+                    URL url = new URL(auxUrl);
+                    HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                    conn.setRequestMethod("GET");
+                    conn.setRequestProperty("Accept", "application/json");
+
+                    if (conn.getResponseCode() != 200) {
+                        throw new RuntimeException("Failed : HTTP error code : "
+                                + conn.getResponseCode());
+                    }
+
+                    BufferedReader br = new BufferedReader(new InputStreamReader(
+                            (conn.getInputStream())));
+
+                    String output = "";
+                    String result = "";
+                    System.out.println("Output from Server .... \n");
+                    while ((output = br.readLine()) != null) {
+                        result += output;
+                    }
+
+                    callResponse.getCall(result);
+                    conn.disconnect();
+
+                } catch (MalformedURLException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
     }
 
 }
