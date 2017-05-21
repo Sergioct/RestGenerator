@@ -6,6 +6,9 @@ import android.widget.TextView;
 
 import com.sergiocrespotoubes.restgenerator.RestGenerator;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 public class MainActivity extends AppCompatActivity {
 
     @Override
@@ -18,7 +21,22 @@ public class MainActivity extends AppCompatActivity {
         RestGenerator restGenerator = new RestGenerator("https://jsonplaceholder.typicode.com");
         ApiController apiController = restGenerator.build(ApiController.class);
 
-        String result = apiController.getData();
+        JSONObject jsonObject = new JSONObject();
+        JSONObject jsonData = new JSONObject();
+
+        try {
+            jsonData.put("title", "titulo");
+            jsonData.put("body", "cuerpo");
+            jsonData.put("userId", 1);
+            jsonObject.put("data", jsonData);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        String body = jsonObject.toString();
+        String result = apiController.postData(body);
+
+        //String result = apiController.getData();
 
         tv_result.setText(result);
     }
