@@ -50,10 +50,6 @@ public class RestGenerator {
     private String post(Method method, Object[] args) {
         POST post = method.getAnnotation(POST.class);
 
-        //Class classCalled = test.expected();
-        Class declaringClass = method.getDeclaringClass();
-        Class theClass = method.getClass();
-
         String myUrl = this.url + post.value();
         result = "error";
         finished = false;
@@ -67,19 +63,13 @@ public class RestGenerator {
             }
         });
 
-        while(!finished){
-
-        }
+        while(!finished){}
 
         return result;
     }
 
     private String get(Method method) {
         GET get = method.getAnnotation(GET.class);
-
-        //Class classCalled = test.expected();
-        //Class declaringClass = method.getDeclaringClass();
-        //Class theClass = method.getClass();
 
         String myUrl = this.url + get.value();
         result = "error";
@@ -93,9 +83,7 @@ public class RestGenerator {
             }
         });
 
-        while(!finished){
-
-        }
+        while(!finished){}
 
         return result;
     }
@@ -158,9 +146,7 @@ public class RestGenerator {
                         int responsecode = conn.getResponseCode();
                         throw new RuntimeException("Failed : HTTP error code : "
                                 + conn.getResponseCode());
-
                     }
-
                     BufferedReader br = new BufferedReader(new InputStreamReader(
                             (conn.getInputStream())));
 
