@@ -1,7 +1,6 @@
 package sergiocrespotoubes.com.restgenerator;
 
 
-import retrofit2.http.Field;
 import retrofit2.http.GET;
 import retrofit2.http.POST;
 
@@ -15,6 +14,6 @@ public interface ApiControllerRetrofit {
     String getData();
 
     @POST("/posts")
-    String postData(@Field("body") String body);
+    String postData(String body);
 
 }

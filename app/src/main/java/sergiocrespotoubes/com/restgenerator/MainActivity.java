@@ -14,8 +14,11 @@ import retrofit2.Retrofit;
 public class MainActivity extends AppCompatActivity {
 
     TextView tv_result;
+    TextView tv_result_get;
     TextView tv_result_retrofit;
+    TextView tv_result_get_retrofit;
     TextView tv_result_volley;
+    TextView tv_result_get_volley;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -23,11 +26,11 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         tv_result          = (TextView) findViewById(R.id.tv_result);
-        tv_result          = (TextView) findViewById(R.id.tv_result_get);
+        tv_result_get          = (TextView) findViewById(R.id.tv_result_get);
         tv_result_retrofit = (TextView) findViewById(R.id.tv_result_retrofit);
-        tv_result_retrofit = (TextView) findViewById(R.id.tv_result_get_retrofit);
+        tv_result_get_retrofit = (TextView) findViewById(R.id.tv_result_get_retrofit);
         tv_result_volley   = (TextView) findViewById(R.id.tv_result_volley);
-        tv_result_volley   = (TextView) findViewById(R.id.tv_result_get_volley);
+        tv_result_get_volley   = (TextView) findViewById(R.id.tv_result_get_volley);
 
         restGenerator();
         retrofit();
@@ -54,9 +57,10 @@ public class MainActivity extends AppCompatActivity {
         String body = jsonObject.toString();
         String result = apiController.postData(body);
 
-        //String result = apiController.getData();
+        String resultGet = apiController.getData();
 
         tv_result.setText(result);
+        tv_result_get.setText(resultGet);
     }
 
     private void retrofit() {
